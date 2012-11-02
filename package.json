@@ -1,0 +1,15 @@
+{
+    "name": "survana-save",
+    "version": "0.0.1",
+    "author": "Victor Petrov <victor_petrov@harvard.edu>",
+    "private": true,
+    "description": "Survana save module",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/vpetrov/survana-save.git"
+    },
+    "license": "New BSD",
+    "dependencies": {
+        "step": ">= 0.0.5"
+    }
+}
