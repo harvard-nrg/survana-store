@@ -1,7 +1,7 @@
-survana-save
+survana-store
 ===========
 
-Survana Save Module
+Survana Store Module
 
 Author: Victor Petrov <victor.petrov@gmail.com>
 
