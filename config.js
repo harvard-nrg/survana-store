@@ -9,12 +9,6 @@
 exports.title = 'Survana Study';
 
 exports.routes = {
-    'POST': {
-        '/': 'index'
-    }
-};
-
-exports.routes = {
     'GET': {
         '/': 'index'
     },
