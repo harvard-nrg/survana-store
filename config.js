@@ -8,6 +8,12 @@
 
 exports.title = 'Survana Study';
 
+exports.track = {
+    'ip':           true,
+    'user-agent':   true,
+    'referer':      true
+};
+
 exports.routes = {
     'GET': {
         '/': 'index'
