@@ -6,9 +6,30 @@
  * @license New BSD License (see LICENSE file for details).
  */
 
-var async = require('async');
+var async = require('async'),
+    ursa  = require('ursa');
+
+function createKey(key) {
+    var result = "",
+        wrap = key.match(/-----[A-Za-z0-9 ]+-----/g),
+        data = key.replace(/-----[A-Za-z0-9 ]+-----/g, ""),
+        result = wrap[0],
+        piece;
+
+    do {
+        piece = data.slice(0,64);
+        data = data.substr(64,data.length);
+        result += "\n" + piece;
+    } while (piece && piece.length);
+
+    return result + wrap[1];
+}
 
 exports.index = function (req, res, next) {
+    res.send('Hello :)');
+};
+
+exports.store = function (req, res, next) {
     "use strict";
 
     var app         = req.app,
@@ -76,7 +97,7 @@ exports.index = function (req, res, next) {
             data.store.push(meta);
 
             results.responseCollection.insert(data, {safe: true, fsync: true}, next2);
-        }],
+        }]
     },
         function response(err) {
             if (err) {
@@ -97,8 +118,84 @@ exports.index = function (req, res, next) {
         });
 };
 
-exports.responses = function (req, res, next) {
+exports.download = function (req, res, next) {
     "use strict";
 
-    console.log(req.body);
+    var app = req.app,
+        db  = app.db,
+        payload = req.body,
+        keys = [],
+        i;
+
+
+    for (i in payload) {
+        if (payload.hasOwnProperty(i)) {
+            keys.push(i);
+        }
+    }
+
+    async.auto({
+        'responseCollection': [function (next2) {
+            db.collection('response', next2);
+        }],
+
+        'data': ['responseCollection', function (next2, results) {
+            results.responseCollection.find({'key.id': {'$in':keys}}, next2);
+        }],
+
+        'verified': ['data', function (next2, results) {
+            var items = [],
+                keys  = {},
+                publicKey,
+                verifier,
+                clientSignature;
+
+            //use the public key of each document to verify the signature sent by the client to ensure that the key ID
+            //was not guessed by accident and that the key id matches the correct private key (effectively ensuring that
+            //the client will be able to decrypt the data)
+            results.data.each(function (err, item) {
+                    if (item !== null) {
+                        if (!keys[item.key.id]) {
+                            keys[item.key.id] = ursa.coercePublicKey(createKey(item.key.pem));
+                        }
+
+                        clientSignature = payload[item.key.id];
+                        publicKey = keys[item.key.id];
+
+                        //create signature verifier
+                        verifier = ursa.createVerifier('sha256');
+                        verifier.update(item.key.id);
+
+                        try {
+                            //skip
+                            if (!verifier.verify(publicKey, clientSignature, 'hex')) {
+                                console.error('Wrong signature for key ' + item.key.id);
+                                return;
+                            }
+                        } catch (exrr) {
+                            console.error('Cannot verify signature for key ' + item.key.id);
+                            return;
+                        }
+
+                        //no need to send the private key
+                        delete item.key.pem;
+
+                        items.push(item);
+                    } else {
+                        next2(null, items);
+                    }
+            });
+        }]
+    },
+        function response (err, results) {
+            if (err) {
+                return next(err);
+            }
+
+            //send the data to the client
+            res.send(JSON.stringify({
+                'success': 1,
+                'data': results.verified
+            }));
+        });
 };

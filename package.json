@@ -9,6 +9,7 @@
     },
     "license": "New BSD",
     "dependencies": {
-        "async": ">= 0.1.x"
+        "async": "0.1.x",
+        "ursa": "0.7.x"
     }
 }

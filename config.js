@@ -16,11 +16,11 @@ exports.track = {
 
 exports.routes = {
     'GET': {
-        '/': 'index'
+        '/': {'index': 'store' }
     },
 
     'POST': {
-        '/': {'index': 'responses'}
+        '/': {'index': 'download' }
     }
 };
 
