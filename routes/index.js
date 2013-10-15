@@ -156,6 +156,12 @@ exports.download = function (req, res, next) {
             results.data.each(function (err, item) {
                     if (item !== null) {
                         if (!keys[item.key.id]) {
+                            //make sure there's a PEM value for the public key
+                            if (item.key.pem === undefined) {
+                                console.error("ERROR: No public key (PEM) entry found for item. Skipping.", item);
+                                return;
+                            }
+
                             keys[item.key.id] = ursa.coercePublicKey(createKey(item.key.pem));
                         }
 
