@@ -123,16 +123,16 @@ exports.download = function (req, res, next) {
 
     var app = req.app,
         db  = app.db,
-        payload = req.body,
         keys = [],
         access = {
-             privateKeyId: payload.privateKeyId,
+             key: payload.key,
              items: []
         }, //audit trail
+        //pre-0.1.8 code submits just the signatures.
+        signatures = req.body.signature || req.body,
         i;
 
-
-    for (i in payload) {
+    for (i in signatures) {
         if (payload.hasOwnProperty(i)) {
             keys.push(i);
         }
