@@ -207,7 +207,7 @@ exports.download = function (req, res, next) {
         }],
 
         'track': ['auditCollection', 'verified', function (next2, results) {
-            results.auditCollection.insert(data, {safe: false, fsync: false}, next2);
+            results.auditCollection.insert(access, {safe: false, fsync: false}, next2);
         }]
     },
         function response (err, results) {
