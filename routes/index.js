@@ -125,6 +125,10 @@ exports.download = function (req, res, next) {
         db  = app.db,
         payload = req.body,
         keys = [],
+        access = {
+             privateKeyId: payload.privateKeyId,
+             items: []
+        }, //audit trail
         i;
 
 
@@ -137,6 +141,10 @@ exports.download = function (req, res, next) {
     async.auto({
         'responseCollection': [function (next2) {
             db.collection('response', next2);
+        }],
+
+        'auditCollection': [function (next2) {
+            db.collection('audit', next2);
         }],
 
         'data': ['responseCollection', function (next2, results) {
@@ -183,14 +191,23 @@ exports.download = function (req, res, next) {
                             return;
                         }
 
-                        //no need to send the private key
+                        //no need to send the public key
                         delete item.key.pem;
 
                         items.push(item);
+
+                        access.items.push({
+                            'key_id': item.key.id,
+                            'object_id': item._id
+                        });
                     } else {
                         next2(null, items);
                     }
             });
+        }],
+
+        'track': ['auditCollection', 'verified', function (next2, results) {
+            results.auditCollection.insert(data, {safe: false, fsync: false}, next2);
         }]
     },
         function response (err, results) {
