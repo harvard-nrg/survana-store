@@ -125,7 +125,7 @@ exports.download = function (req, res, next) {
         db  = app.db,
         keys = [],
         access = {
-             key: payload.key,
+             key: req.body.key,
              items: []
         }, //audit trail
         //pre-0.1.8 code submits just the signatures.
@@ -133,7 +133,7 @@ exports.download = function (req, res, next) {
         i;
 
     for (i in signatures) {
-        if (payload.hasOwnProperty(i)) {
+        if (signatures.hasOwnProperty(i)) {
             keys.push(i);
         }
     }
@@ -173,7 +173,7 @@ exports.download = function (req, res, next) {
                             keys[item.key.id] = ursa.coercePublicKey(createKey(item.key.pem));
                         }
 
-                        clientSignature = payload[item.key.id];
+                        clientSignature = signatures[item.key.id];
                         publicKey = keys[item.key.id];
 
                         //create signature verifier
